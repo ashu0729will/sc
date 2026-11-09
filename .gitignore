@@ -1,0 +1,6 @@
+/target
+/.env
+/frontend/node_modules
+/frontend/package-lock.json
+*.log
+.DS_Store

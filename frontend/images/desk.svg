@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="木质桌面收纳">
+  <rect width="400" height="300" fill="#f2f5f2"/>
+  <rect x="112" y="168" width="176" height="76" rx="8" fill="#173f35"/>
+  <path d="M112 196h176M156 168v28M244 168v28" stroke="#eef3f0" stroke-width="4" opacity=".45"/>
+  <path d="M136 168V120h26v48M186 168v-34h26v34M236 168v-56h26v56" fill="#173f35" opacity=".55"/>
+</svg>

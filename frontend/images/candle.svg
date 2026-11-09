@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="暮色香氛蜡烛">
+  <rect width="400" height="300" fill="#f2f5f2"/>
+  <rect x="146" y="150" width="108" height="96" rx="10" fill="#173f35"/>
+  <rect x="146" y="150" width="108" height="14" rx="7" fill="#eef3f0"/>
+  <path d="M200 118c14 8 20 16 20 26a20 20 0 0 1-40 0c0-10 6-18 20-26Z" fill="#c9d8d1"/>
+  <path d="M200 132v-22" stroke="#173f35" stroke-width="4" stroke-linecap="round"/>
+  <path d="M170 194h60M170 214h44" stroke="#eef3f0" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+</svg>

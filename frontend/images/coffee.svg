@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="山野手冲咖啡">
+  <rect width="400" height="300" fill="#f2f5f2"/>
+  <path d="M148 146h104l-10 92a12 12 0 0 1-12 11h-60a12 12 0 0 1-12-11l-10-92Z" fill="#173f35"/>
+  <path d="M162 146a38 38 0 0 1 76 0" fill="none" stroke="#173f35" stroke-width="8" stroke-linecap="round"/>
+  <path d="M186 168v58M214 168v58" stroke="#eef3f0" stroke-width="4" opacity=".45"/>
+  <path d="M250 168h26a18 18 0 0 1 0 36h-26" fill="none" stroke="#173f35" stroke-width="8" stroke-linecap="round"/>
+</svg>

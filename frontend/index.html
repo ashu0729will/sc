@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#173f35" />
+    <meta name="description" content="MORI 商城，精选数码、家居、穿搭、食品与户外好物。" />
+    <title>MORI 商店</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <section id="store-view" class="store-shell">
+      <aside class="store-sidebar" aria-label="商品分类">
+        <a class="brand" href="#/store" aria-label="MORI 首页">
+          <span class="brand-mark">M</span>
+          <span class="brand-copy">
+            <strong>MORI</strong>
+            <small>精选生活商店</small>
+          </span>
+        </a>
+
+        <p class="sidebar-title">逛一逛</p>
+        <nav id="category-list" class="category-list" aria-label="分类导航"></nav>
+
+        <div class="sidebar-note">
+          <span class="sidebar-note-mark">✦</span>
+          <p>认真挑选，慢慢生活</p>
+        </div>
+
+        <button id="account-entry" class="account-entry" type="button">
+          <span class="account-avatar">访</span>
+          <span class="account-entry-copy">
+            <strong>登录 / 注册</strong>
+            <small>管理你的商店</small>
+          </span>
+        </button>
+      </aside>
+
+      <main class="store-main">
+        <header class="store-topbar">
+          <div class="mobile-brand">MORI</div>
+          <form id="search-form" class="search-form" role="search">
+            <span aria-hidden="true">⌕</span>
+            <input id="search-input" type="search" placeholder="搜索商品、分类或关键词" autocomplete="off" />
+            <button type="submit">搜索</button>
+          </form>
+          <button id="top-auth-button" class="top-auth-button" type="button">登录</button>
+        </header>
+
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <p class="eyebrow">AUTUMN EDIT · 2026</p>
+            <h1 id="hero-title">把日常，<br />过成喜欢的样子。</h1>
+            <p class="hero-description">从桌面的一束光，到出门时随手带上的那只包。这里收集耐用、好看，也真正用得上的生活好物。</p>
+            <button class="hero-action" type="button" data-scroll-products>开始逛逛 <span>→</span></button>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="hero-orbit hero-orbit-one"></div>
+            <div class="hero-orbit hero-orbit-two"></div>
+            <div class="hero-object hero-object-main">森</div>
+            <div class="hero-object hero-object-small">生活</div>
+            <span class="hero-spark hero-spark-one">✦</span>
+            <span class="hero-spark hero-spark-two">✧</span>
+          </div>
+        </section>
+
+        <section id="product-section" class="product-section" aria-labelledby="product-heading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">CURATED GOODS</p>
+              <h2 id="product-heading">全部商品</h2>
+            </div>
+            <p id="product-count" class="product-count">正在载入商品…</p>
+          </div>
+          <div id="product-grid" class="product-grid" aria-live="polite"></div>
+          <div id="product-empty" class="empty-state" hidden>
+            <span>⌕</span>
+            <h3>没有找到相关商品</h3>
+            <p>换个关键词或分类再试试。</p>
+          </div>
+        </section>
+      </main>
+    </section>
+
+    <section id="portal-view" class="portal-shell" hidden>
+      <aside class="portal-sidebar" aria-label="后台导航">
+        <a class="brand brand-portal" href="#/store" aria-label="返回商城">
+          <span class="brand-mark">M</span>
+          <span class="brand-copy">
+            <strong>MORI</strong>
+            <small>商家工作台</small>
+          </span>
+        </a>
+        <nav id="portal-nav" class="portal-nav" aria-label="工作台导航"></nav>
+        <div class="portal-user">
+          <span id="portal-avatar" class="account-avatar">M</span>
+          <span class="portal-user-copy">
+            <strong id="portal-user-name">用户</strong>
+            <small id="portal-user-role">商家</small>
+          </span>
+        </div>
+      </aside>
+      <main id="portal-main" class="portal-main" aria-live="polite"></main>
+    </section>
+
+    <dialog id="auth-dialog" class="auth-dialog">
+      <div class="auth-card">
+        <button id="auth-close" class="icon-button auth-close" type="button" aria-label="关闭">×</button>
+        <div class="auth-heading">
+          <span class="brand-mark auth-brand-mark">M</span>
+          <p class="eyebrow">MORI ACCOUNT</p>
+          <h2>欢迎来到 MORI</h2>
+          <p>登录后进入商家工作台；新账号需要管理员人工审核。</p>
+        </div>
+
+        <div class="auth-tabs" role="tablist" aria-label="账号操作">
+          <button id="login-tab" class="auth-tab is-active" type="button" data-auth-mode="login">登录</button>
+          <button id="register-tab" class="auth-tab" type="button" data-auth-mode="register">注册</button>
+        </div>
+
+        <form id="login-form" class="auth-form">
+          <label>
+            <span>用户名</span>
+            <input name="username" autocomplete="username" required minlength="3" maxlength="32" />
+          </label>
+          <label>
+            <span>密码</span>
+            <input name="password" type="password" autocomplete="current-password" required minlength="8" />
+          </label>
+          <p id="login-message" class="form-message" role="alert"></p>
+          <button class="primary-button" type="submit">登录账号</button>
+        </form>
+
+        <form id="register-form" class="auth-form" hidden>
+          <label>
+            <span>用户名</span>
+            <input name="username" autocomplete="username" required minlength="3" maxlength="32" />
+          </label>
+          <label>
+            <span>显示名称</span>
+            <input name="displayName" autocomplete="organization" maxlength="80" placeholder="例如：山野杂货铺" />
+          </label>
+          <label>
+            <span>密码</span>
+            <input name="password" type="password" autocomplete="new-password" required minlength="8" />
+          </label>
+          <p id="register-message" class="form-message" role="alert"></p>
+          <button class="primary-button" type="submit">提交注册申请</button>
+          <p class="auth-footnote">提交后账号状态为“待审核”，审核通过前无法登录。</p>
+        </form>
+      </div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/js/app.js"></script>
+  </body>
+</html>

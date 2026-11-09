@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="云朵降噪耳机">
+  <rect width="400" height="300" fill="#f2f5f2"/>
+  <path d="M120 170v-20a80 80 0 0 1 160 0v20" fill="none" stroke="#173f35" stroke-width="9" stroke-linecap="round"/>
+  <rect x="98" y="160" width="42" height="66" rx="20" fill="#173f35"/>
+  <rect x="260" y="160" width="42" height="66" rx="20" fill="#173f35"/>
+  <rect x="110" y="176" width="18" height="34" rx="9" fill="#eef3f0"/>
+  <rect x="272" y="176" width="18" height="34" rx="9" fill="#eef3f0"/>
+</svg>

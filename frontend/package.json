@@ -1,0 +1,12 @@
+{
+  "name": "mori-shop-frontend",
+  "private": true,
+  "version": "1.1.0",
+  "description": "MORI 商城前端：原生 JS + TypeScript 类型检查，无构建步骤",
+  "scripts": {
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}
