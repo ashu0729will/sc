@@ -53,10 +53,7 @@ async fn main() -> anyhow::Result<()> {
     let app = routes::router(state);
     let listener = TcpListener::bind(&config.bind_address).await?;
 
-    tracing::info!(
-        address = %config.bind_address,
-        "MORI 商城已启动，浏览器访问 http://localhost:5050"
-    );
+    tracing::info!(address = %config.bind_address, "MORI 商城已启动");
     axum::serve(listener, app).await?;
     Ok(())
 }

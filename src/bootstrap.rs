@@ -11,23 +11,11 @@ pub async fn bootstrap(
     let admin_id = ensure_admin(pool, admin_username, admin_password).await?;
 
     if seed_demo_data {
-        let demo_id = ensure_demo_user(
-            pool,
-            "demo_seller",
-            "森野小铺",
-            "Demo@123456",
-            "approved",
-        )
-        .await?;
+        let demo_id =
+            ensure_demo_user(pool, "demo_seller", "森野小铺", "Demo@123456", "approved").await?;
 
-        let _waiting_id = ensure_demo_user(
-            pool,
-            "waiting_user",
-            "待审核账号",
-            "Wait@123456",
-            "pending",
-        )
-        .await?;
+        let _waiting_id =
+            ensure_demo_user(pool, "waiting_user", "待审核账号", "Wait@123456", "pending").await?;
 
         let product_count: i64 =
             sqlx::query_scalar("SELECT COUNT(*) FROM products WHERE owner_id = ?")
@@ -44,16 +32,13 @@ pub async fn bootstrap(
     Ok(())
 }
 
-async fn ensure_admin(
-    pool: &MySqlPool,
-    username: &str,
-    password: &str,
-) -> anyhow::Result<i64> {
+async fn ensure_admin(pool: &MySqlPool, username: &str, password: &str) -> anyhow::Result<u64> {
     if let Some(id) = user_id_by_username(pool, username).await? {
         return Ok(id);
     }
 
-    let password_hash = hash_password(password).map_err(|error| anyhow::anyhow!(error.to_string()))?;
+    let password_hash =
+        hash_password(password).map_err(|error| anyhow::anyhow!(error.to_string()))?;
     let result = sqlx::query(
         r#"
         INSERT INTO users
@@ -67,7 +52,7 @@ async fn ensure_admin(
     .execute(pool)
     .await?;
 
-    Ok(result.last_insert_id() as i64)
+    Ok(result.last_insert_id())
 }
 
 async fn ensure_demo_user(
@@ -76,12 +61,13 @@ async fn ensure_demo_user(
     display_name: &str,
     password: &str,
     status: &str,
-) -> anyhow::Result<i64> {
+) -> anyhow::Result<u64> {
     if let Some(id) = user_id_by_username(pool, username).await? {
         return Ok(id);
     }
 
-    let password_hash = hash_password(password).map_err(|error| anyhow::anyhow!(error.to_string()))?;
+    let password_hash =
+        hash_password(password).map_err(|error| anyhow::anyhow!(error.to_string()))?;
     let result = sqlx::query(
         r#"
         INSERT INTO users
@@ -97,17 +83,19 @@ async fn ensure_demo_user(
     .execute(pool)
     .await?;
 
-    Ok(result.last_insert_id() as i64)
+    Ok(result.last_insert_id())
 }
 
-async fn user_id_by_username(pool: &MySqlPool, username: &str) -> anyhow::Result<Option<i64>> {
-    Ok(sqlx::query_scalar::<_, i64>("SELECT id FROM users WHERE username = ? LIMIT 1")
-        .bind(username)
-        .fetch_optional(pool)
-        .await?)
+async fn user_id_by_username(pool: &MySqlPool, username: &str) -> anyhow::Result<Option<u64>> {
+    Ok(
+        sqlx::query_scalar::<_, u64>("SELECT id FROM users WHERE username = ? LIMIT 1")
+            .bind(username)
+            .fetch_optional(pool)
+            .await?,
+    )
 }
 
-async fn seed_demo_products(pool: &MySqlPool, owner_id: i64) -> anyhow::Result<()> {
+async fn seed_demo_products(pool: &MySqlPool, owner_id: u64) -> anyhow::Result<()> {
     let products = [
         (
             "云朵降噪耳机",
@@ -116,7 +104,7 @@ async fn seed_demo_products(pool: &MySqlPool, owner_id: i64) -> anyhow::Result<(
             "数码",
             399.00_f64,
             "/images/headphones.svg",
-            36_i64,
+            36_u64,
         ),
         (
             "暮色香氛蜡烛",
@@ -125,7 +113,7 @@ async fn seed_demo_products(pool: &MySqlPool, owner_id: i64) -> anyhow::Result<(
             "家居",
             128.00_f64,
             "/images/candle.svg",
-            52_i64,
+            52_u64,
         ),
         (
             "手作帆布托特包",
@@ -134,7 +122,7 @@ async fn seed_demo_products(pool: &MySqlPool, owner_id: i64) -> anyhow::Result<(
             "穿搭",
             159.00_f64,
             "/images/tote.svg",
-            24_i64,
+            24_u64,
         ),
         (
             "山野手冲咖啡",
@@ -143,7 +131,7 @@ async fn seed_demo_products(pool: &MySqlPool, owner_id: i64) -> anyhow::Result<(
             "食品",
             88.00_f64,
             "/images/coffee.svg",
-            80_i64,
+            80_u64,
         ),
         (
             "轻量旅行水杯",
@@ -152,7 +140,7 @@ async fn seed_demo_products(pool: &MySqlPool, owner_id: i64) -> anyhow::Result<(
             "户外",
             119.00_f64,
             "/images/bottle.svg",
-            61_i64,
+            61_u64,
         ),
         (
             "木质桌面收纳",
@@ -161,7 +149,7 @@ async fn seed_demo_products(pool: &MySqlPool, owner_id: i64) -> anyhow::Result<(
             "家居",
             219.00_f64,
             "/images/desk.svg",
-            18_i64,
+            18_u64,
         ),
         (
             "晨光机械键盘",
@@ -170,7 +158,7 @@ async fn seed_demo_products(pool: &MySqlPool, owner_id: i64) -> anyhow::Result<(
             "数码",
             529.00_f64,
             "/images/keyboard.svg",
-            29_i64,
+            29_u64,
         ),
         (
             "亚麻条纹抱枕",
@@ -179,7 +167,7 @@ async fn seed_demo_products(pool: &MySqlPool, owner_id: i64) -> anyhow::Result<(
             "家居",
             99.00_f64,
             "/images/cushion.svg",
-            45_i64,
+            45_u64,
         ),
     ];
 

@@ -19,9 +19,9 @@ use tower_http::{
 
 use crate::{
     auth::{
-        client_ip, client_user_agent, create_session, current_user,
-        current_user_optional, hash_password, login_response, logout_response, record_login,
-        require_role, verify_password, SESSION_COOKIE,
+        client_ip, client_user_agent, create_session, current_user, current_user_optional,
+        hash_password, login_response, logout_response, record_login, require_role,
+        verify_password, SESSION_COOKIE,
     },
     error::AppError,
     models::{
@@ -59,7 +59,10 @@ pub fn router(state: AppState) -> Router {
         .route("/auth/login", post(login))
         .route("/auth/logout", post(logout))
         .route("/auth/me", get(me))
-        .route("/seller/products", get(list_own_products).post(create_product))
+        .route(
+            "/seller/products",
+            get(list_own_products).post(create_product),
+        )
         .route("/seller/products/{id}/status", patch(update_product_status))
         .route("/admin/dashboard", get(admin_dashboard))
         .route("/admin/accounts", get(admin_accounts))
@@ -191,10 +194,27 @@ async fn login(
         return Err(AppError::BadRequest("请输入用户名和密码".to_string()));
     }
 
+    // shortcut: 只按用户名统计失败次数，单实例够用；多实例或换用户名爆破需改 Redis/按 IP 限流。
+    let recent_failures: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(*) FROM login_events
+        WHERE username = ? AND success = FALSE
+          AND created_at >= UTC_TIMESTAMP(6) - INTERVAL 15 MINUTE
+        "#,
+    )
+    .bind(&username)
+    .fetch_one(&state.db)
+    .await?;
+
+    if recent_failures >= 10 {
+        return Err(AppError::TooManyRequests(
+            "尝试登录过于频繁，请 15 分钟后再试".to_string(),
+        ));
+    }
+
     let user = sqlx::query_as::<_, crate::models::UserRow>(
         r#"
-        SELECT id, username, display_name, password_hash, role, status,
-               last_login_at, login_count, created_at
+        SELECT id, username, display_name, password_hash, role, status
         FROM users
         WHERE username = ?
         LIMIT 1
@@ -411,14 +431,14 @@ async fn create_product(
     .execute(&state.db)
     .await?;
 
-    let product = product_by_id(&state.db, result.last_insert_id() as i64).await?;
+    let product = product_by_id(&state.db, result.last_insert_id()).await?;
     Ok((StatusCode::CREATED, Json(ProductView::from(product))).into_response())
 }
 
 async fn update_product_status(
     State(state): State<AppState>,
     headers: HeaderMap,
-    Path(product_id): Path<i64>,
+    Path(product_id): Path<u64>,
     Json(payload): Json<ProductStatusRequest>,
 ) -> Result<Json<ProductView>, AppError> {
     let user = current_user(&state, &headers).await?;
@@ -455,7 +475,7 @@ async fn admin_accounts(
 async fn admin_update_account(
     State(state): State<AppState>,
     headers: HeaderMap,
-    Path(account_id): Path<i64>,
+    Path(account_id): Path<u64>,
     Json(payload): Json<AccountStatusRequest>,
 ) -> Result<Json<AccountView>, AppError> {
     let admin = current_user(&state, &headers).await?;
@@ -570,8 +590,8 @@ async fn admin_dashboard(
         FROM login_events
         WHERE success = TRUE
           AND created_at >= UTC_DATE() - INTERVAL 6 DAY
-        GROUP BY DATE(created_at)
-        ORDER BY DATE(created_at)
+        GROUP BY day
+        ORDER BY day
         "#,
     )
     .fetch_all(&state.db)
@@ -585,7 +605,9 @@ async fn admin_dashboard(
     let login_series = (0..7)
         .rev()
         .map(|offset| {
-            let date = (today - Duration::days(offset)).format("%Y-%m-%d").to_string();
+            let date = (today - Duration::days(offset))
+                .format("%Y-%m-%d")
+                .to_string();
             LoginPoint {
                 count: *counts.get(&date).unwrap_or(&0),
                 date,
@@ -632,7 +654,7 @@ async fn fetch_accounts(pool: &MySqlPool) -> Result<Vec<AccountView>, AppError> 
     Ok(rows.into_iter().map(AccountView::from).collect())
 }
 
-async fn fetch_account_by_id(pool: &MySqlPool, account_id: i64) -> Result<AccountRow, AppError> {
+async fn fetch_account_by_id(pool: &MySqlPool, account_id: u64) -> Result<AccountRow, AppError> {
     sqlx::query_as::<_, AccountRow>(&format!("{ACCOUNT_SELECT} WHERE u.id = ? LIMIT 1"))
         .bind(account_id)
         .fetch_optional(pool)
@@ -640,7 +662,7 @@ async fn fetch_account_by_id(pool: &MySqlPool, account_id: i64) -> Result<Accoun
         .ok_or_else(|| AppError::NotFound("账号不存在".to_string()))
 }
 
-async fn product_by_id(pool: &MySqlPool, product_id: i64) -> Result<ProductRow, AppError> {
+async fn product_by_id(pool: &MySqlPool, product_id: u64) -> Result<ProductRow, AppError> {
     sqlx::query_as::<_, ProductRow>(&format!("{PRODUCT_SELECT} WHERE p.id = ? LIMIT 1"))
         .bind(product_id)
         .fetch_optional(pool)
@@ -681,5 +703,46 @@ fn default_product_image(category: &str) -> &'static str {
         "食品" => "/images/coffee.svg",
         "户外" => "/images/bottle.svg",
         _ => "/images/cushion.svg",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn normalize_username_trims_and_lowercases() {
+        assert_eq!(normalize_username("  Alice_01 ").unwrap(), "alice_01");
+        assert_eq!(normalize_username("山野小铺").unwrap(), "山野小铺");
+    }
+
+    #[test]
+    fn normalize_username_rejects_invalid() {
+        assert!(normalize_username("").is_err());
+        assert!(normalize_username("ab").is_err());
+        assert!(normalize_username("a b").is_err());
+        assert!(normalize_username("with-dash").is_err());
+        assert!(normalize_username(&"a".repeat(33)).is_err());
+    }
+
+    #[test]
+    fn normalize_username_accepts_bounds() {
+        assert_eq!(normalize_username(&"a".repeat(3)).unwrap().len(), 3);
+        assert_eq!(normalize_username(&"a".repeat(32)).unwrap().len(), 32);
+    }
+
+    #[test]
+    fn validate_password_checks_length_bounds() {
+        assert!(validate_password("1234567").is_err());
+        assert!(validate_password("12345678").is_ok());
+        assert!(validate_password(&"x".repeat(128)).is_ok());
+        assert!(validate_password(&"x".repeat(129)).is_err());
+    }
+
+    #[test]
+    fn default_product_image_maps_known_categories_and_falls_back() {
+        assert_eq!(default_product_image("数码"), "/images/headphones.svg");
+        assert_eq!(default_product_image("户外"), "/images/bottle.svg");
+        assert_eq!(default_product_image("未知分类"), "/images/cushion.svg");
     }
 }

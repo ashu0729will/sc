@@ -184,6 +184,8 @@ function renderCategories(categories) {
           class: `category-item${state.category === item.value ? " is-active" : ""}`,
           onclick: () => {
             state.category = item.value;
+            state.keyword = "";
+            /** @type {HTMLInputElement} */ ($("#search-input")).value = "";
             loadStorefront();
           },
         },
@@ -199,6 +201,7 @@ async function loadStorefront() {
   if (state.keyword) params.set("q", state.keyword);
   try {
     const data = await api(`/storefront?${params}`);
+    $("#product-heading").textContent = state.category || "全部商品";
     renderCategories(data.categories);
     renderProducts(data.products);
   } catch (error) {
@@ -235,7 +238,9 @@ function toggleAuth(open) {
 function switchAuthTab(mode) {
   for (const button of document.querySelectorAll("[data-auth-mode]")) {
     const target = /** @type {HTMLElement} */ (button);
-    target.classList.toggle("is-active", target.dataset.authMode === mode);
+    const active = target.dataset.authMode === mode;
+    target.classList.toggle("is-active", active);
+    target.setAttribute("aria-selected", String(active));
   }
   $("#login-form").hidden = mode !== "login";
   $("#register-form").hidden = mode === "login";
@@ -750,6 +755,7 @@ function bindEvents() {
   $("#search-form").addEventListener("submit", (event) => {
     event.preventDefault();
     state.keyword = /** @type {HTMLInputElement} */ ($("#search-input")).value.trim();
+    if (state.keyword) state.category = "";
     location.hash = "#/store";
     loadStorefront();
   });

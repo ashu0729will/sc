@@ -2,7 +2,10 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use axum::http::{header, HeaderMap, HeaderValue, StatusCode};
+use axum::{
+    http::{header, HeaderMap, HeaderValue, StatusCode},
+    response::IntoResponse,
+};
 use chrono::{Duration, Utc};
 use rand::RngCore;
 use sha2::{Digest, Sha256};
@@ -110,8 +113,7 @@ pub async fn current_user_optional(
     let now = Utc::now().naive_utc();
     let user = sqlx::query_as::<_, UserRow>(
         r#"
-        SELECT u.id, u.username, u.display_name, u.password_hash, u.role, u.status,
-               u.last_login_at, u.login_count, u.created_at
+        SELECT u.id, u.username, u.display_name, u.password_hash, u.role, u.status
         FROM sessions s
         INNER JOIN users u ON u.id = s.user_id
         WHERE s.token_hash = ? AND s.expires_at > ?
@@ -158,7 +160,7 @@ pub fn require_role(user: &UserRow, roles: &[&str]) -> Result<(), AppError> {
 
 pub async fn record_login(
     pool: &MySqlPool,
-    user_id: Option<i64>,
+    user_id: Option<u64>,
     username: &str,
     success: bool,
     reason: Option<&str>,
@@ -187,7 +189,7 @@ pub async fn record_login(
 
 pub async fn create_session(
     state: &AppState,
-    user_id: i64,
+    user_id: u64,
     ip: &str,
     user_agent: &str,
 ) -> Result<String, AppError> {
@@ -230,10 +232,9 @@ pub fn login_response(
         user: UserPublic::from(user),
     });
     let mut response = body.into_response();
-    response.headers_mut().insert(
-        header::SET_COOKIE,
-        session_cookie(token, ttl_hours, secure),
-    );
+    response
+        .headers_mut()
+        .insert(header::SET_COOKIE, session_cookie(token, ttl_hours, secure));
     response
 }
 
@@ -249,3 +250,68 @@ pub fn logout_response(secure: bool) -> axum::response::Response {
     response
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn password_hash_roundtrip() {
+        let hash = hash_password("Secret@123").unwrap();
+        assert!(verify_password("Secret@123", &hash).unwrap());
+        assert!(!verify_password("Secret@124", &hash).unwrap());
+    }
+
+    #[test]
+    fn session_tokens_are_unique_and_hashed_as_hex() {
+        let token = generate_session_token();
+        assert_eq!(token.len(), 64);
+        assert!(token.chars().all(|character| character.is_ascii_hexdigit()));
+        assert_ne!(token, generate_session_token());
+        assert_eq!(hash_session_token(&token).len(), 64);
+        assert_ne!(hash_session_token(&token), token);
+    }
+
+    #[test]
+    fn cookie_value_reads_named_cookie_from_any_header() {
+        let mut headers = HeaderMap::new();
+        headers.append(
+            header::COOKIE,
+            HeaderValue::from_static("theme=dark; foo=1"),
+        );
+        headers.append(
+            header::COOKIE,
+            HeaderValue::from_static("mori_session=abc123"),
+        );
+        assert_eq!(
+            cookie_value(&headers, SESSION_COOKIE).as_deref(),
+            Some("abc123")
+        );
+        assert_eq!(cookie_value(&headers, "missing"), None);
+    }
+
+    #[test]
+    fn client_ip_prefers_first_forwarded_address() {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            "x-forwarded-for",
+            HeaderValue::from_static("203.0.113.7, 10.0.0.1"),
+        );
+        assert_eq!(client_ip(&headers), "203.0.113.7");
+
+        let empty = HeaderMap::new();
+        assert_eq!(client_ip(&empty), "local");
+    }
+
+    #[test]
+    fn session_cookie_is_http_only_and_scoped() {
+        let cookie = session_cookie("token", 168, true)
+            .to_str()
+            .unwrap()
+            .to_string();
+        assert!(cookie.contains("HttpOnly"));
+        assert!(cookie.contains("SameSite=Lax"));
+        assert!(cookie.contains("Secure"));
+        assert!(cookie.contains("Path=/"));
+        assert!(cookie.starts_with("mori_session=token"));
+    }
+}

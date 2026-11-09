@@ -98,7 +98,6 @@ h1, h2, h3, p { margin: 0; }
 
 .category-item:hover { background: var(--soft); color: var(--ink); }
 .category-item.is-active { background: var(--green-soft); color: var(--green); font-weight: 500; }
-.category-item span:last-child { font-size: 12px; opacity: .6; }
 
 .sidebar-note {
   margin-top: auto;
@@ -567,11 +566,11 @@ h1, h2, h3, p { margin: 0; }
   }
   .store-sidebar .sidebar-title,
   .store-sidebar .sidebar-note,
+  .store-sidebar .brand,
   .brand-copy small { display: none; }
   .brand-copy strong { font-size: 14px; }
   .category-list { flex-direction: row; gap: 6px; }
   .category-item { white-space: nowrap; padding: 7px 12px; }
-  .category-item span:last-child { display: none; }
   .account-entry { padding: 6px; border: 0; margin-left: auto; }
   .account-entry-copy { display: none; }
 

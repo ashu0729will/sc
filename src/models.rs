@@ -4,21 +4,18 @@ use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow)]
 pub struct UserRow {
-    pub id: i64,
+    pub id: u64,
     pub username: String,
     pub display_name: String,
     pub password_hash: String,
     pub role: String,
     pub status: String,
-    pub last_login_at: Option<NaiveDateTime>,
-    pub login_count: i64,
-    pub created_at: NaiveDateTime,
 }
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserPublic {
-    pub id: i64,
+    pub id: u64,
     pub username: String,
     pub display_name: String,
     pub role: String,
@@ -60,8 +57,8 @@ pub struct AuthResponse {
 
 #[derive(Debug, Clone, FromRow)]
 pub struct ProductRow {
-    pub id: i64,
-    pub owner_id: i64,
+    pub id: u64,
+    pub owner_id: u64,
     pub owner_name: String,
     pub name: String,
     pub subtitle: String,
@@ -70,15 +67,15 @@ pub struct ProductRow {
     pub price: f64,
     pub image_url: String,
     pub status: String,
-    pub stock: i64,
+    pub stock: u64,
     pub created_at: NaiveDateTime,
 }
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProductView {
-    pub id: i64,
-    pub owner_id: i64,
+    pub id: u64,
+    pub owner_id: u64,
     pub owner_name: String,
     pub name: String,
     pub subtitle: String,
@@ -87,7 +84,7 @@ pub struct ProductView {
     pub price: f64,
     pub image_url: String,
     pub status: String,
-    pub stock: i64,
+    pub stock: u64,
     pub created_at: NaiveDateTime,
 }
 
@@ -145,7 +142,7 @@ pub struct AccountStatusRequest {
 
 #[derive(Debug, Clone, FromRow)]
 pub struct AccountRow {
-    pub id: i64,
+    pub id: u64,
     pub username: String,
     pub display_name: String,
     pub role: String,
@@ -153,7 +150,7 @@ pub struct AccountRow {
     pub rejection_reason: Option<String>,
     pub approved_at: Option<NaiveDateTime>,
     pub last_login_at: Option<NaiveDateTime>,
-    pub login_count: i64,
+    pub login_count: u64,
     pub active_product_count: i64,
     pub created_at: NaiveDateTime,
 }
@@ -161,7 +158,7 @@ pub struct AccountRow {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountView {
-    pub id: i64,
+    pub id: u64,
     pub username: String,
     pub display_name: String,
     pub role: String,
@@ -169,7 +166,7 @@ pub struct AccountView {
     pub rejection_reason: Option<String>,
     pub approved_at: Option<NaiveDateTime>,
     pub last_login_at: Option<NaiveDateTime>,
-    pub login_count: i64,
+    pub login_count: u64,
     pub active_product_count: i64,
     pub created_at: NaiveDateTime,
 }
@@ -207,7 +204,7 @@ pub struct LoginPoint {
 
 #[derive(Debug, Clone, FromRow)]
 pub struct RecentLoginRow {
-    pub id: i64,
+    pub id: u64,
     pub username: String,
     pub success: bool,
     pub reason: Option<String>,
@@ -217,7 +214,7 @@ pub struct RecentLoginRow {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RecentLoginView {
-    pub id: i64,
+    pub id: u64,
     pub username: String,
     pub success: bool,
     pub reason: Option<String>,

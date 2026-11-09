@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#173f35" />
     <meta name="description" content="MORI 商城，精选数码、家居、穿搭、食品与户外好物。" />
     <title>MORI 商店</title>
-    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/styles.css?v=1.2.0" />
   </head>
   <body>
     <section id="store-view" class="store-shell">
@@ -114,8 +114,8 @@
         </div>
 
         <div class="auth-tabs" role="tablist" aria-label="账号操作">
-          <button id="login-tab" class="auth-tab is-active" type="button" data-auth-mode="login">登录</button>
-          <button id="register-tab" class="auth-tab" type="button" data-auth-mode="register">注册</button>
+          <button id="login-tab" class="auth-tab is-active" type="button" role="tab" aria-selected="true" data-auth-mode="login">登录</button>
+          <button id="register-tab" class="auth-tab" type="button" role="tab" aria-selected="false" data-auth-mode="register">注册</button>
         </div>
 
         <form id="login-form" class="auth-form">
@@ -152,6 +152,6 @@
     </dialog>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <script type="module" src="/js/app.js"></script>
+    <script type="module" src="/js/app.js?v=1.2.0"></script>
   </body>
 </html>

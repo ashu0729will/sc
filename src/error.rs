@@ -18,6 +18,8 @@ pub enum AppError {
     NotFound(String),
     #[error("{0}")]
     Conflict(String),
+    #[error("{0}")]
+    TooManyRequests(String),
     #[error(transparent)]
     Internal(#[from] anyhow::Error),
 }
@@ -36,6 +38,7 @@ impl IntoResponse for AppError {
             Self::Forbidden(message) => (StatusCode::FORBIDDEN, message),
             Self::NotFound(message) => (StatusCode::NOT_FOUND, message),
             Self::Conflict(message) => (StatusCode::CONFLICT, message),
+            Self::TooManyRequests(message) => (StatusCode::TOO_MANY_REQUESTS, message),
             Self::Internal(error) => {
                 tracing::error!(error = %error, "internal server error");
                 (
@@ -58,5 +61,43 @@ impl From<sqlx::Error> for AppError {
 impl From<argon2::password_hash::Error> for AppError {
     fn from(error: argon2::password_hash::Error) -> Self {
         Self::internal(error)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn status(error: AppError) -> StatusCode {
+        error.into_response().status()
+    }
+
+    #[test]
+    fn maps_errors_to_status_codes() {
+        assert_eq!(
+            status(AppError::BadRequest("x".into())),
+            StatusCode::BAD_REQUEST
+        );
+        assert_eq!(
+            status(AppError::Unauthorized("x".into())),
+            StatusCode::UNAUTHORIZED
+        );
+        assert_eq!(
+            status(AppError::Forbidden("x".into())),
+            StatusCode::FORBIDDEN
+        );
+        assert_eq!(
+            status(AppError::NotFound("x".into())),
+            StatusCode::NOT_FOUND
+        );
+        assert_eq!(status(AppError::Conflict("x".into())), StatusCode::CONFLICT);
+        assert_eq!(
+            status(AppError::TooManyRequests("x".into())),
+            StatusCode::TOO_MANY_REQUESTS
+        );
+        assert_eq!(
+            status(AppError::Internal(anyhow::anyhow!("boom"))),
+            StatusCode::INTERNAL_SERVER_ERROR
+        );
     }
 }
